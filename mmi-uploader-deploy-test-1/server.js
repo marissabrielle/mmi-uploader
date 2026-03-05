@@ -9,7 +9,6 @@ const applyToHtml = require('./lib/applyToHtml');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const templatePath = path.join(__dirname, 'og code', 'dec_mmi_2025_fmg.html');
-const outputDir = path.join(__dirname, 'generated reports');
 
 const MONTHS = 'january|february|march|april|may|june|july|august|september|october|november|december'.split('|');
 const ABBREV = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec'.split('|');
@@ -45,7 +44,6 @@ app.post('/process', upload.single('rtf'), (req, res) => {
   if (!req.file) return res.status(400).json({ success: false, error: 'No .rtf file uploaded' });
 
   const filename = outputFilename(req.file.originalname, req.body && req.body.filename);
-  const outputPath = path.join(outputDir, filename);
 
   let template;
   try { template = fs.readFileSync(templatePath, 'utf8'); }
@@ -55,8 +53,6 @@ app.post('/process', upload.single('rtf'), (req, res) => {
     const text = rtfToText(req.file.buffer);
     const data = parseRtfContent(text);
     const content = applyToHtml(template, data);
-    fs.mkdirSync(outputDir, { recursive: true });
-    fs.writeFileSync(outputPath, content, 'utf8');
     res.json({ success: true, filename, content });
   } catch (err) {
     console.error(err);
